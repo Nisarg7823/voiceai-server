@@ -1,0 +1,9 @@
+livekit-agents>=1.8
+livekit-plugins-groq>=1.8
+livekit-plugins-deepgram>=1.8
+livekit-plugins-silero>=1.8
+livekit-plugins-sarvam>=1.8
+python-dotenv>=1.0
+aiosqlite>=0.20
+# Optional, LiveKit Cloud only (set USE_NOISE_CANCELLATION=true):
+# livekit-plugins-noise-cancellation
