@@ -10,7 +10,7 @@ from livekit.agents import AgentSession, Agent, function_tool
 from livekit.plugins import silero, deepgram, groq, sarvam
 
 import db
-from prompts import AGENT_INSTRUCTION
+from prompts import AGENT_INSTRUCTION, COMPANY_NAME
 
 
 # Shared transcript buffer — populated by speech events, read by register_complaint
@@ -27,10 +27,11 @@ async def register_complaint(
     category: str,
     description: str,
 ) -> str:
-    """Register a citizen complaint in the database. Call this after collecting
-    all required details (name, mobile, city, area, category, description) and
-    before saying the complaint number aloud. category must be one of:
-    Electricity, Water, Road, Society, Other."""
+    """Register a customer support ticket in the database. Call this after
+    collecting all required details (name, mobile, city, vehicle model,
+    registration number, category, description) and before saying the ticket
+    number aloud. category must be one of: Vehicle Complaint, Service & Repair,
+    Warranty, Roadside Assistance, Test Drive, Sales Inquiry, Billing, Other."""
 
     # Duplicate check
     duplicate = await db.check_duplicate(mobile, category)
@@ -64,7 +65,7 @@ async def register_complaint(
     if _transcript_turns:
         await db.save_transcript(complaint_number, list(_transcript_turns))
 
-    return f"Complaint {complaint_number} registered successfully."
+    return f"Ticket {complaint_number} registered successfully with {COMPANY_NAME} Support."
 
 
 @function_tool
@@ -93,6 +94,20 @@ async def check_status(complaint_number: str) -> str:
         f"Complaint {record['complaint_number']} "
         f"({record['category']}, {record['area']}, {record['city']}) — "
         f"Status: {record['status']}. Filed on {record['timestamp']}."
+    )
+
+@function_tool
+async def update_compaint_status(complaint_number: str, status: str) -> str:
+    """Update the status of a complaint by its complaint number. Call this
+    when the agent wants to update the status of a complaint. Always take user confirmation before calling this function."""
+    record = await db.get_complaint_status(complaint_number)
+    if not record:
+        return "No complaint found with that number."
+    await db.update_complaint_status(complaint_number, status)
+    return (
+        f"Complaint {record['complaint_number']} "
+        f"({record['category']}, {record['area']}, {record['city']}) — "
+        f"Status updated to: {status}."
     )
 
 
@@ -165,8 +180,8 @@ async def entrypoint(ctx: agents.JobContext):
 
     # 🔊 FIRST AUDIO MUST BE AUDIBLE
     await session.say(
-        "Hello. You have reached the Complaint Department Helpline. "
-        "Please tell us your issue in detail.",
+        f"Hello, thank you for calling {COMPANY_NAME} Customer Support. "
+        "How may I assist you today?",
         allow_interruptions=False,
     )
 
