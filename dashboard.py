@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, request, render_template
+from flask import Flask, jsonify, request, render_template, Response
 import asyncio
 import db
 
@@ -49,6 +49,15 @@ def update_status(complaint_number):
         return jsonify({"ok": False, "error": "Invalid status"}), 400
     ok = run_async(db.update_complaint_status(complaint_number, status))
     return jsonify({"ok": ok})
+
+@app.route("/api/export/complaints.csv")
+def export_complaints():
+    csv_data = run_async(db.export_to_csv())
+    return Response(
+        csv_data,
+        mimetype="text/csv",
+        headers={"Content-Disposition": "attachment; filename=complaints.csv"}
+    )
 
 
 # ─── Run ──────────────────────────────────────────────────────────────────────

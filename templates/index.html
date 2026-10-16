@@ -231,6 +231,21 @@
     .badge-pending  { background: var(--status-pending-bg);  color: var(--status-pending-fg); }
     .badge-progress { background: var(--status-progress-bg); color: var(--status-progress-fg); }
     .badge-resolved { background: var(--status-resolved-bg); color: var(--status-resolved-fg); }
+    
+    .export-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 14px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    color: var(--fg-muted);
+    font-size: 13px;
+    text-decoration: none;
+    transition: background .15s, color .15s;
+  }
+  .export-btn:hover { background: var(--surface); color: var(--fg); }
+
 
     .cluster-icon {
       color: var(--status-cluster-fg);
@@ -298,7 +313,10 @@
         <h1>Complaints</h1>
         <div class="topbar-meta"><span class="refresh-dot"></span>Live</div>
       </div>
-      <div id="total-count" style="font-size:13px;color:var(--fg-muted)">Loading…</div>
+      <div style="display:flex;align-items:center;gap:14px;">
+        <div id="total-count" style="font-size:13px;color:var(--fg-muted)">Loading…</div>
+        <a href="/api/export/complaints.csv" class="export-btn">↓ Export CSV</a>
+      </div>
     </div>
 
     <!-- Filters -->
