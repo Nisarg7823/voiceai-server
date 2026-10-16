@@ -169,6 +169,17 @@ async def entrypoint(ctx: agents.JobContext):
                 "index": len(_transcript_turns),
             })
 
+    @ctx.room.on("participant_connected")
+    def on_participant_connected(participant: rtc.RemoteParticipant):
+        if participant.kind == rtc.ParticipantKind.PARTICIPANT_KIND_STANDARD:
+            asyncio.ensure_future(
+                session.say(
+                    f"Hello, thank you for calling {COMPANY_NAME} Customer Support. "
+                    "How may I assist you today?",
+                    allow_interruptions=False,
+                )
+            )
+
     await session.start(
         room=ctx.room,
         agent=Assistant(),
@@ -176,13 +187,6 @@ async def entrypoint(ctx: agents.JobContext):
             close_on_disconnect=False,
             audio_input=agents.room_io.AudioInputOptions(),
         ),
-    )
-
-    # 🔊 FIRST AUDIO MUST BE AUDIBLE
-    await session.say(
-        f"Hello, thank you for calling {COMPANY_NAME} Customer Support. "
-        "How may I assist you today?",
-        allow_interruptions=False,
     )
 
     await asyncio.sleep(1)

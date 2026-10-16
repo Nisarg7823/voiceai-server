@@ -1,6 +1,8 @@
 import aiosqlite
 import os
 from datetime import datetime, timezone
+import io
+import csv
 
 DB_PATH = os.environ.get("DB_PATH", os.path.join(os.path.dirname(__file__), "complaints.db"))
 
@@ -165,3 +167,13 @@ async def get_transcript(complaint_number: str) -> list[dict]:
         """, (complaint_number,)) as cursor:
             rows = await cursor.fetchall()
     return [dict(r) for r in rows]
+
+async def export_to_csv() -> str:
+    rows = await get_all_complaints()
+    fields = ["complaint_number","caller_name","mobile","city","area",
+              "category","description","status","timestamp","cluster_alert"]
+    buf = io.StringIO()
+    writer = csv.DictWriter(buf, fieldnames=fields, extrasaction='ignore')
+    writer.writeheader()
+    writer.writerows(rows)
+    return buf.getvalue()
