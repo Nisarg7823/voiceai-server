@@ -112,6 +112,17 @@ async def check_and_flag_cluster(area: str, category: str, within_days: int = 7)
     return count
 
 
+async def get_complaint_full(complaint_number: str) -> dict | None:
+    async with aiosqlite.connect(DB_PATH) as db:
+        db.row_factory = aiosqlite.Row
+        async with db.execute(
+            "SELECT * FROM complaints WHERE UPPER(complaint_number) = UPPER(?)",
+            (complaint_number,)
+        ) as cursor:
+            row = await cursor.fetchone()
+    return dict(row) if row else None
+
+
 async def get_all_complaints(category=None, status=None, area=None, search=None) -> list[dict]:
     clauses, params = [], []
     if category:

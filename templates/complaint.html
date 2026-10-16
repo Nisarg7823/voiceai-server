@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Complaint Detail</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" />
+  <style>
+    :root {
+      --bg:        #0d1117;
+      --surface:   #161b22;
+      --border:    #21262d;
+      --fg:        #e6edf3;
+      --fg-muted:  #7d8590;
+      --accent:    #388bfd;
+      --accent-dim:#1f3a5f;
+
+      --status-pending-bg:   #2d2100;
+      --status-pending-fg:   #e3b341;
+      --status-progress-bg:  #0d2d4a;
+      --status-progress-fg:  #58a6ff;
+      --status-resolved-bg:  #0d2e1f;
+      --status-resolved-fg:  #3fb950;
+
+      --caller-bg: #1a2332;
+      --agent-bg:  #1a2a1a;
+
+      --font-body: 'DM Sans', system-ui, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--font-body);
+      background: var(--bg);
+      color: var(--fg);
+      font-size: 14px;
+      line-height: 1.6;
+      padding: 0 max(16px, env(safe-area-inset-left, 0px));
+      padding-right: max(16px, env(safe-area-inset-right, 0px));
+    }
+
+    /* ── Top bar ─────────────────────────────────────────────────────────── */
+    .topbar {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 18px 12px;
+      border-bottom: 1px solid var(--border);
+      max-width: 900px;
+      margin: 0 auto;
+      width: 100%;
+    }
+    .back-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--fg-muted);
+      text-decoration: none;
+      font-size: 13px;
+      padding: 6px 10px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      transition: background .15s, color .15s;
+      flex-shrink: 0;
+    }
+    .back-btn:hover { background: var(--surface); color: var(--fg); }
+    .topbar-ticket { font-family: var(--font-mono); font-size: 15px; color: var(--accent); }
+    .topbar-name   { color: var(--fg-muted); font-size: 13px; }
+
+    /* ── Page layout ─────────────────────────────────────────────────────── */
+    .page {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 28px 12px 60px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    /* ── Card ────────────────────────────────────────────────────────────── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .card-header {
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--border);
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      color: var(--fg-muted);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    /* Details grid */
+    .details-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 0;
+    }
+    .detail-item {
+      padding: 14px 20px;
+      border-right: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+    .detail-item:last-child { border-right: none; }
+    .detail-label {
+      font-size: 11px;
+      color: var(--fg-muted);
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      margin-bottom: 3px;
+    }
+    .detail-value {
+      font-size: 14px;
+      font-weight: 500;
+      word-break: break-all;
+    }
+    .detail-value.mono { font-family: var(--font-mono); font-size: 13px; color: var(--accent); }
+
+    /* Description */
+    .description { padding: 16px 20px; color: var(--fg); line-height: 1.7; }
+
+    /* Status badge */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 9px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .03em;
+    }
+    .badge::before { content:''; width:6px; height:6px; border-radius:50%; background:currentColor; }
+    .badge-pending  { background:var(--status-pending-bg);  color:var(--status-pending-fg); }
+    .badge-progress { background:var(--status-progress-bg); color:var(--status-progress-fg); }
+    .badge-resolved { background:var(--status-resolved-bg); color:var(--status-resolved-fg); }
+
+    /* ── Status update ───────────────────────────────────────────────────── */
+    .status-form {
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .status-form label { font-size: 13px; color: var(--fg-muted); }
+    select {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--fg);
+      border-radius: 6px;
+      padding: 7px 12px;
+      font-family: var(--font-body);
+      font-size: 13px;
+      outline: none;
+      transition: border-color .15s;
+      cursor: pointer;
+    }
+    select:focus { border-color: var(--accent); }
+    select option { background: var(--surface); }
+    .save-btn {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 7px 16px;
+      font-family: var(--font-body);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity .15s;
+    }
+    .save-btn:hover { opacity: .85; }
+    .save-btn:disabled { opacity: .4; cursor: default; }
+    .toast {
+      font-size: 12px;
+      padding: 5px 10px;
+      border-radius: 5px;
+      display: none;
+    }
+    .toast.ok  { background: var(--status-resolved-bg); color: var(--status-resolved-fg); }
+    .toast.err { background: #2d0e0e; color: #f85149; }
+
+    /* ── Transcript ──────────────────────────────────────────────────────── */
+    .transcript { padding: 20px; display: flex; flex-direction: column; gap: 12px; }
+    .turn { display: flex; gap: 10px; align-items: flex-start; }
+    .turn.agent { flex-direction: row-reverse; }
+
+    .avatar {
+      width: 30px; height: 30px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 700;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .turn.caller .avatar { background: var(--accent-dim); color: var(--accent); }
+    .turn.agent  .avatar { background: var(--agent-bg);   color: var(--status-resolved-fg); }
+
+    .bubble {
+      max-width: 72%;
+      padding: 10px 14px;
+      border-radius: 10px;
+      font-size: 13px;
+      line-height: 1.65;
+    }
+    .turn.caller .bubble {
+      background: var(--caller-bg);
+      border-bottom-left-radius: 3px;
+    }
+    .turn.agent .bubble {
+      background: var(--agent-bg);
+      border-bottom-right-radius: 3px;
+    }
+    .turn-label {
+      font-size: 10px;
+      color: var(--fg-muted);
+      margin-bottom: 4px;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+    }
+    .turn.agent .turn-label { text-align: right; }
+
+    .empty-transcript {
+      text-align: center;
+      padding: 40px;
+      color: var(--fg-muted);
+      font-size: 13px;
+    }
+
+    /* Loading */
+    .spinner {
+      display: inline-block;
+      width: 18px; height: 18px;
+      border: 2px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading { text-align: center; padding: 40px; }
+
+    @media (max-width: 600px) {
+      .bubble { max-width: 88%; }
+      .details-grid { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Top bar -->
+<div class="topbar">
+  <a href="/" class="back-btn">
+    <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+    Back
+  </a>
+  <div>
+    <div class="topbar-ticket" id="hdr-ticket">Loading…</div>
+    <div class="topbar-name"  id="hdr-name"></div>
+  </div>
+</div>
+
+<!-- Page -->
+<div class="page" id="page">
+  <div class="loading"><div class="spinner"></div></div>
+</div>
+
+<script>
+  const number = "{{ complaint_number }}";
+
+  function statusBadge(s) {
+    const map = { 'Pending': 'pending', 'In Progress': 'progress', 'Resolved': 'resolved' };
+    return `<span class="badge badge-${map[s] || 'pending'}">${s}</span>`;
+  }
+
+  function fmtDate(ts) {
+    if (!ts) return '—';
+    try { return new Date(ts).toLocaleString('en-IN', { dateStyle:'medium', timeStyle:'short' }); }
+    catch { return ts; }
+  }
+
+  function renderComplaint(c) {
+    document.getElementById('hdr-ticket').textContent = c.complaint_number;
+    document.getElementById('hdr-name').textContent   = c.caller_name || '';
+
+    return `
+    <div class="card">
+      <div class="card-header">
+        <span>Complaint Details</span>
+        ${statusBadge(c.status)}
+      </div>
+      <div class="details-grid">
+        <div class="detail-item"><div class="detail-label">Ticket #</div><div class="detail-value mono">${c.complaint_number}</div></div>
+        <div class="detail-item"><div class="detail-label">Name</div><div class="detail-value">${c.caller_name || '—'}</div></div>
+        <div class="detail-item"><div class="detail-label">Mobile</div><div class="detail-value">${c.mobile || '—'}</div></div>
+        <div class="detail-item"><div class="detail-label">City</div><div class="detail-value">${c.city || '—'}</div></div>
+        <div class="detail-item"><div class="detail-label">Area</div><div class="detail-value">${c.area || '—'}</div></div>
+        <div class="detail-item"><div class="detail-label">Category</div><div class="detail-value">${c.category || '—'}</div></div>
+        <div class="detail-item"><div class="detail-label">Filed on</div><div class="detail-value">${fmtDate(c.timestamp)}</div></div>
+        <div class="detail-item"><div class="detail-label">Cluster</div><div class="detail-value" style="color:${c.cluster_alert?'var(--status-cluster-fg)':'var(--fg-muted)'}">${c.cluster_alert ? '⚠ Flagged' : 'None'}</div></div>
+      </div>
+      ${c.description ? `<div class="description">${c.description}</div>` : ''}
+    </div>
+
+    <div class="card">
+      <div class="card-header">Update Status</div>
+      <div class="status-form">
+        <label for="status-sel">Change status to</label>
+        <select id="status-sel">
+          <option ${c.status==='Pending'     ?'selected':''}>Pending</option>
+          <option ${c.status==='In Progress' ?'selected':''}>In Progress</option>
+          <option ${c.status==='Resolved'    ?'selected':''}>Resolved</option>
+        </select>
+        <button class="save-btn" id="save-btn" onclick="saveStatus()">Save</button>
+        <span class="toast" id="toast"></span>
+      </div>
+    </div>`;
+  }
+
+  function renderTranscript(turns) {
+    if (!turns || !turns.length) {
+      return `<div class="card">
+        <div class="card-header">Transcript</div>
+        <div class="empty-transcript">No transcript recorded for this call.</div>
+      </div>`;
+    }
+    const bubbles = turns.map(t => `
+      <div class="turn ${t.role}">
+        <div class="avatar">${t.role === 'caller' ? 'C' : 'A'}</div>
+        <div>
+          <div class="turn-label">${t.role === 'caller' ? 'Caller' : 'Agent'}</div>
+          <div class="bubble">${t.content}</div>
+        </div>
+      </div>`).join('');
+    return `<div class="card">
+      <div class="card-header">Transcript <span style="font-weight:400;text-transform:none;letter-spacing:0">(${turns.length} turns)</span></div>
+      <div class="transcript">${bubbles}</div>
+    </div>`;
+  }
+
+  function saveStatus() {
+    const sel  = document.getElementById('status-sel');
+    const btn  = document.getElementById('save-btn');
+    const toast = document.getElementById('toast');
+    btn.disabled = true;
+
+    fetch(`/api/complaint/${encodeURIComponent(number)}/status`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: sel.value })
+    })
+    .then(r => r.json())
+    .then(data => {
+      toast.className = 'toast ' + (data.ok ? 'ok' : 'err');
+      toast.textContent = data.ok ? '✓ Status updated' : (data.error || 'Error');
+      toast.style.display = 'inline-block';
+      setTimeout(() => { toast.style.display = 'none'; }, 3000);
+    })
+    .catch(() => {
+      toast.className = 'toast err';
+      toast.textContent = 'Network error';
+      toast.style.display = 'inline-block';
+    })
+    .finally(() => { btn.disabled = false; });
+  }
+
+  fetch(`/api/complaint/${encodeURIComponent(number)}`)
+    .then(r => r.json())
+    .then(data => {
+      document.getElementById('page').innerHTML =
+        renderComplaint(data.complaint) +
+        renderTranscript(data.transcript);
+    })
+    .catch(() => {
+      document.getElementById('page').innerHTML =
+        `<div style="text-align:center;padding:60px;color:var(--fg-muted)">Could not load complaint. Is the API running?</div>`;
+    });
+</script>
+</body>
+</html>
